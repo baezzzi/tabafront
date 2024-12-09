@@ -1,0 +1,13 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/cafe24ssurround.ttf",
+      "sha1": "cfa785ae62a9386830c1c5acc165275418f60aee"
+    },
+    {
+      "path": "assets/fonts/cafe24ssurroundair.ttf",
+      "sha1": "6636624da4c067ff1618284aea7ec8c9f70fb2f1"
+    }
+  ]
+}

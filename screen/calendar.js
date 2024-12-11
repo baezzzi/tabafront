@@ -124,7 +124,7 @@ const Calendar = ( { navigation } ) => {
                 <Text title="day7" style={styles.daytext}>{`${day+3}`}</Text>
               </TouchableOpacity> 
             </View>
-      
+        
           {/* 초인종 */}
           <View style={styles.alramcontainer}>
             <TouchableOpacity style={styles.unread} onPress={() => {openmodal('doorbell')}}>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity} from 'react-native';
+import { createUserWithIdAndPassword, signInWithIdAndPassword } from "firebase/auth";
 
 const Signup = ({ navigation }) => {
 
@@ -14,10 +15,10 @@ const Signup = ({ navigation }) => {
 
     const handleSignup = async () => {
         try {
-            const response = await fetch("https://apiaddress/members/sign-up", {
-                method: "POST",
+            const response = await fetch("https://apiaddress/signup", {
+                method: POST,
                 headers: {
-                    'Content-Type' : 'application/json',
+                    'Content-Type' : 'appication/json',
                 },
                 body: JSON.stringify({
                     id: id,

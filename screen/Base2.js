@@ -6,7 +6,6 @@ import Alramcontent from './Alramcontent';
 import { AlarmContext } from './Alarmcontext';
 import { FlatList } from 'react-native-gesture-handler';
 
-
 const Base2 = ( { navigation } ) => {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
@@ -24,10 +23,6 @@ const Base2 = ( { navigation } ) => {
     const { alarms, addAlarm, removeAlarm, clearAlarm} = useContext(AlarmContext);
 
     useEffect(() => {
-
-        const unsubscibe = messaging().onMessage(async remoteMessage => {
-            console.log(remoteMessage);
-        })
 
         choosedevice('rice');
         setTime('21시');
@@ -48,10 +43,7 @@ const Base2 = ( { navigation } ) => {
 
         return () => {
             socket.close();
-            unsubscibe;
         };
-
-        
 
     }, []);
 

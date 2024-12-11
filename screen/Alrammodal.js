@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, Text, Image } from 'react-native';
+import { AlarmContext } from './Alarmcontext';  // AlarmContext import
 
 const Alrammodal = ({ visible, onClose, allalarms, devicename, deviceImage, time }) => {
 

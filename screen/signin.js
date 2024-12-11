@@ -1,45 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 
 const Signin = ( { navigation }) => {
-
-  const [id, setId] = useState('');
-  const [passwd, setPasswd] = useState('');
-
-  const handleSignin = async () =>{
-    try {
-      const response = await fetch('https://url/members/sign-in', {
-        method: "POST",
-        headers: {
-          'Content-Type' : 'application/json',
-        },
-        body : JSON.stringify({
-          id : id,
-          passwd : passwd
-        }),
-      });
-
-      const result = await response.json();
-      if (response.ok) {
-        Alert.alert('로그인 성공', [
-          {text : '확인', onPress: () => navigation.navigate('Base2') },
-        ]);
-        console.log(id, passwd);
-      } else {
-        Alert.alert('로그인 실패', result.message);
-      }
-    } catch (error) {
-      console.log('로그인 오류', error);
-      Alert.alert('로그인 실패 햇삼~');
-    }
-  };
-
   return (
     <View style={styles.container}>
       {/* 아이디 입력 */}
       <TextInput
-        value={id}
-        onChangeText={setId}
         style={styles.input}
         placeholder="아이디 입력"
         placeholderTextColor="#878787"
@@ -49,8 +15,6 @@ const Signin = ( { navigation }) => {
 
       {/* 비밀번호 입력 */}
       <TextInput
-        value={passwd}
-        onChangeText={setPasswd}
         style={styles.input}
         placeholder="비밀번호 입력"
         placeholderTextColor="#878787"
@@ -59,7 +23,7 @@ const Signin = ( { navigation }) => {
       />
 
       {/* 로그인 버튼 */}
-      <TouchableOpacity style={styles.button} onPress={handleSignin}>
+      <TouchableOpacity style={styles.button} onPress={() => { navigation.navigate('Base2') }}>
         <Text style={styles.buttonText}>로그인</Text>
       </TouchableOpacity>
 

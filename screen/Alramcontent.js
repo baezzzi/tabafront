@@ -1,7 +1,7 @@
 import React from 'react';
-import { TouchableOpacity, Text, Image, View, StyleSheet, Modal } from 'react-native';
+import { TouchableOpacity, Text, Image, View, StyleSheet, Modal, ScrollView } from 'react-native';
 
-const Alramcontent = ({ visible, onClose, content, deviceImage, devicename, time }) => {
+const Alramcontent = ({ visible, onClose, content, deviceImage, devicename, time, sttContent }) => {
     return (
         <Modal
             animationType="none"
@@ -17,7 +17,11 @@ const Alramcontent = ({ visible, onClose, content, deviceImage, devicename, time
                             <Text style={styles.devicename}>{devicename}</Text>
                             <Text style={styles.time}>{time}</Text>
                             <Text style={styles.modalcontent}>{content}</Text>
+                            {sttContent && sttContent !== 'null' ? ( <ScrollView style={styles.scrollContainer}>
+                                <Text style={styles.sttcontennt}>{sttContent}</Text>
+                            </ScrollView> ) : null }
                         </View>
+
                         <TouchableOpacity style={styles.closebutton} onPress={onClose}>
                             <Text style={styles.closebuttontext}>X</Text>
                         </TouchableOpacity>
@@ -36,7 +40,7 @@ const styles = StyleSheet.create({
     },
     modalview: {
         width: 300,
-        height: 100,
+        height: 140,
         backgroundColor: '#FFFFFF',
         alignItems: 'center',
         borderRadius: 20,
@@ -100,6 +104,18 @@ const styles = StyleSheet.create({
         fontFamily: 'cafe24ssurroundair',
         textAlign: 'left',
         marginTop: 7,
+    },
+    scrollContainer: {
+            width: 250,
+            height: 50,
+            padding: 1,
+            position: 'absolute',
+            left: -17,
+            top: 70,
+    },
+    sttcontennt: {
+        fontSize: 10,
+
     }
 });
 

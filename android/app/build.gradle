@@ -119,7 +119,8 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'com.google.firebase:firebase-messaging' // 추가
+    implementation 'com.google.firebase:firebase-messaging' // FCM message
     implementation platform('com.google.firebase:firebase-bom:33.7.0')
     implementation 'com.google.firebase:firebase-analytics'
+//    implementation "androidx.core:core-splashscreen:1.0.0" // 스플래시 스크린 의존성
 }

@@ -1,8 +1,13 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { StyleSheet, View, TouchableOpacity, Image, Text, Modal } from 'react-native';
 import { useState } from 'react';
 import Alrammodal from './Alrammodal';
 import { AlarmContext } from './Alarmcontext';
+import Sttmodal from './Sttmodal';
+import Test from './test';
+
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Calendar = ( { navigation } ) => {
 
@@ -14,30 +19,148 @@ const Calendar = ( { navigation } ) => {
   const weekday = week[currentDate.getDay()];
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [sttVisible, setSttVisible] = useState(false);
   const [selectedDeviceAlarms, setSelectedDeviceAlarms] = useState([]);
 
-  const { allalarms } = useContext(AlarmContext); 
+  const [date, setDate] = useState(`${year}-${month < 10 ? '0' + month : month}-${day < 10 ? '0' + day : day}`);
+
+  const { allalarms, time, device, sttContent, alarms, isRead } = useContext(AlarmContext);
 
   const [devicename, setDevicename] = useState('');
   const [deviceImage, setDeviceImage] = useState(null);
-  const [time, setTime] = useState('');
 
-  const openmodal = (devicename) => {
-    console.log('Clicked device name:', devicename);  
-    const filteredAlarms = allalarms.filter(alarm => 
-      alarm.devicename && alarm.devicename.trim().toLowerCase() === devicename.trim().toLowerCase()
-    );
-    console.log('Filtered Alarms:', filteredAlarms);  
-    setSelectedDeviceAlarms(filteredAlarms);
-    setModalVisible(true);
-    choosedevice(devicename);
-    setTime('11시');
+  const [devicetypealarm, setDevicetypealarm] = useState([]);
+
+  // 날짜 버튼 상태 변경
+  const [selectedButton, setSelectedButton] = useState(day);
+  const [unreadAlarmCount, setUnreadAlarmCount] = useState(0);
+
+  const [iconnum, setIconnum] = useState(0);
+  const [iconcolor, setIconcolor] = useState(1);
+
+  const [modalContent, setModalContent] = useState('');
+
+  const handlebuttonPush = (iconnum) => {
+          if (iconnum === 0) {
+              navigation.navigate('Base2');
+              setIconcolor(1);
+          } else if (iconnum === 1) {
+              navigation.navigate('calendar');
+          }
+      }
+
+  const getToken = async () => {
+          // token 가져오기
+          const userToken = await AsyncStorage.getItem('X-User-Idx');
+          console.log(userToken);
+      };
+
+  const handleLogout = async () => {
+          getToken();
+          try {
+              await AsyncStorage.removeItem('X-User-Idx');
+                  // 로그아웃 후 화면 전환이나 앱 상태 변경
+               navigation.navigate('main');
+          } catch (error) {
+              console.log('로그아웃 실패:', error);
+          }
+      };
+
+  // useEffect로 date 상태 변경 시 API 요청
+  useEffect(() => {
+    if (date) {
+      fetchAlarmsForDate(date);
+    }
+  }, [date]);
+
+    // 읽지 않은 알람의 개수를 계산
+    useEffect(() => {
+        const unreadAlarms = alarms?.filter((alarm) => !alarm.isRead);  // isRead가 false인 알람 필터링
+        setUnreadAlarmCount(unreadAlarms?.length || 0);  // 읽지 않은 알람 개수 업데이트
+    }, [alarms]);  // alarms가 업데이트될 때마다 실행
+
+  //날짜 클릭시 해당 날짜 데이터 요청하는 함수
+  const fetchAlarmsForDate = async (selectedDate) => {
+    try {
+
+      const token = await AsyncStorage.getItem('X-User-Idx');
+
+      console.log('요청 시작');
+      const response = await axios.get(`http://54.180.219.236:8000/records/device-type/date`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        params: {
+            date: selectedDate,
+        }
+      });
+
+      if (response.status === 200) {
+        console.log("데이터", response.data);
+        setSelectedDeviceAlarms(response.data); //서버에서 전달한 선택된 날짜의 데이터로 업데이트
+      }
+    } catch(error) {
+      console.error('오류 발생', error);
+      Alert.alert('오류','서버와의 통신 문제');
+    }
   }
+
+  // 날짜 버튼 눌렀을 때 해당 날짜 요청 가도록
+  const handleDateButtonPress = (selectedDay) => {
+    const selectedDate = `${year}-${month < 10 ? '0' + month : month}-${selectedDay < 10 ? '0' + selectedDay : selectedDay}`
+    setDate(selectedDate);
+    console.log(selectedDate);
+    setSelectedButton(selectedDay);
+  }
+
+  // 각 device 별로 modal 열리도록 
+  const openmodal = (devicename) => {
+    console.log('Clicked device name:', devicename);
+    if (devicename === 'cast' || devicename === 'doorbell') {
+        const filteredAlarms = selectedDeviceAlarms.filter(alarm =>
+            alarm.deviceType && alarm.deviceType.trim().toLowerCase() === devicename.trim().toLowerCase()
+        );
+
+    if (devicename === 'cast') {
+        setModalContent('안내방송이 있습니다');
+    } else if (devicename === 'doorbell') {
+        setModalContent('초인종이 울렸습니다!');
+    }
+        console.log('Filtered Alarms:', filteredAlarms);
+        setDevicetypealarm(filteredAlarms);
+
+        setSttVisible(true); // 얘가 다름
+    } else {
+        const filteredAlarms = selectedDeviceAlarms.filter(alarm =>
+            alarm.deviceType && alarm.deviceType.trim().toLowerCase() === devicename.trim().toLowerCase()
+        );
+
+    if (devicename === 'microwave') {
+        setModalContent('전자레인지가 완료 됐습니다!');
+    } else if (devicename === 'lock') {
+        setModalContent('건전지 수명이 얼마 안 남았습니다!');
+    } else if (devicename === 'refrigerator') {
+        setModalContent('냉장고 문이 열려있습니다');
+    } else if (devicename === 'cooker') {
+        setModalContent('취사가 완료 됐습니다!');
+    } else if (devicename === 'washer'){
+        setModalContent('세탁기/건조기가 완료 됐습니다');
+    }
+        console.log('Filtered Alarms:', filteredAlarms);
+        setDevicetypealarm(filteredAlarms);
+
+        setModalVisible(true);
+    }
+    choosedevice(devicename);
+    console.log(devicetypealarm);
+    console.log(modalContent);
+    console.log(devicetypealarm?.text);
+    console.log(devicetypealarm[0]?.resultTime);
+  }
+
+  // 모달 열릴 때 device 데이터 선택
   const choosedevice = (device) => {
-    
-    let devicename = 'rice';
-    let deviceImage = require('../assets/image/rice.png');
-    let modalContent = '도어락 건전지 교체 요망.';
 
     switch(device) {
         case 'doorbell' : 
@@ -52,7 +175,7 @@ const Calendar = ( { navigation } ) => {
                 setDevicename('전자레인지'); 
                 setDeviceImage(require('../assets/image/microwave.png'));
                 break;
-        case 'radio' : 
+        case 'cast' :
                 setDevicename('안내발송'); 
                 setDeviceImage(require('../assets/image/radio.png'));
                 break;
@@ -60,68 +183,82 @@ const Calendar = ( { navigation } ) => {
                 setDevicename('냉장고'); 
                 setDeviceImage(require('../assets/image/refrigerator.png'));
                 break;
-        case 'rice' : 
+        case 'cooker' :
                 setDevicename('밥솥'); 
                 setDeviceImage(require('../assets/image/rice.png'));
                 break;
-        case 'washing' : 
+        case 'washer' :
                 setDevicename('세탁기/건조기'); 
                 setDeviceImage(require('../assets/image/washing.png'));
                 break;
     }
   }
 
+  useEffect(() => {
+    console.log("devicetypealarm updated:", devicetypealarm);
+  }, [devicetypealarm]);
+
+  useEffect(() => {
+    console.log("modalContent updated:", modalContent);
+  }, [modalContent]);
+
     
     return (
         <View style={styles.container}>
             {/*상단 디자인 */}
             <View style={styles.topDesign}>
+            <Test />
                  {/* 상단 버튼들 */}
                 <View style={styles.topButtons}>
-                    <TouchableOpacity onPress={() => navigation.navigate('Base2')}>
+                    <TouchableOpacity onPress={() => handlebuttonPush(0)}>
                       <Image source={require('../assets/image/home.png')} style={styles.icon} />
+                      {unreadAlarmCount > 0 && (
+                        <View style={styles.unreadBadge}>
+                            <Text style={styles.unreadCountText}>{unreadAlarmCount}</Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => navigation.navigate('calendar')}>
-                        <Image source={require('../assets/image/calendar.png')} style={styles.icon} />
+                    <TouchableOpacity onPress={() => handlebuttonPush(1)}>
+                        <Image source={require('../assets/image/calendar.png')} style={[styles.icon, iconcolor === 1 && { tintColor: '#4A3E8B' }]} />
                     </TouchableOpacity>
-                    <TouchableOpacity>
-                        <Image source={require('../assets/image/setting.png')} style={styles.icon} />
+                    <TouchableOpacity onPress = {() => handleLogout()}>
+                        <Image source={require('../assets/image/logout.png')} style={styles.icon} />
                     </TouchableOpacity>
                 </View>
 
-                <Text style={styles.today}>오늘</Text>
+                <Text style={styles.today}>TODAY</Text>
                 {/*오늘 날짜*/}
                 <Text style={styles.currentDate}>{`${year}년 ${month}월 ${day}일 ${weekday}요일`}</Text>
             </View>
 
             <View style={styles.daycontainer}>
               {/* Day 1 Button */}
-              <TouchableOpacity style={styles.dayButton} onPress={() => {} } >
-                <Text title="day1" style={styles.daytext}>{`${day-3}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day-6 && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day-6)} >
+                <Text title="day1" style={[styles.daytext, selectedButton === day-6 && styles.currentday]}>{`${day-6}`}</Text>
               </TouchableOpacity> 
               {/* Day 2 Button */}
-              <TouchableOpacity style={styles.dayButton} onPress={() => {}} >
-                <Text title="day2" style={styles.daytext}>{`${day-2}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day-5 && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day-5)} >
+                <Text title="day2" style={[styles.daytext, selectedButton === day-5 && styles.currentday]}>{`${day-5}`}</Text>
               </TouchableOpacity> 
               {/* Day 3 Button */}
-              <TouchableOpacity style={styles.dayButton} onPress={() => {}} >
-                <Text title="day3" style={styles.daytext}>{`${day-1}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day-4 && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day-4)} >
+                <Text title="day3" style={[styles.daytext, selectedButton === day-4 && styles.currentday]}>{`${day-4}`}</Text>
               </TouchableOpacity> 
               {/* Day 4 Button */}
-              <TouchableOpacity style={styles.dayButton2} onPress={() => {}} >
-                <Text title="day4" style={styles.currentday}>{`${day}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day-3 && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day-3)} >
+                <Text title="day4" style={[styles.daytext, selectedButton === day-3 && styles.currentday]}>{`${day-3}`}</Text>
               </TouchableOpacity> 
               {/* Day 5 Button */}
-              <TouchableOpacity style={styles.dayButton} onPress={() => {}} >
-                <Text title="day5" style={styles.daytext}>{`${day+1}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day-2 && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day-2)} >
+                <Text title="day5" style={[styles.daytext, selectedButton === day-2 && styles.currentday]}>{`${day-2}`}</Text>
               </TouchableOpacity> 
               {/* Day 6 Button */}
-              <TouchableOpacity style={styles.dayButton} onPress={() => {}} >
-                <Text title="day6" style={styles.daytext}>{`${day+2}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day-1 && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day-1)} >
+                <Text title="day6" style={[styles.daytext, selectedButton === day-1 && styles.currentday]}>{`${day-1}`}</Text>
               </TouchableOpacity> 
               {/* Day 7 Button */}
-              <TouchableOpacity style={styles.dayButton} onPress={() => {}} >
-                <Text title="day7" style={styles.daytext}>{`${day+3}`}</Text>
+              <TouchableOpacity style={[styles.dayButton, selectedButton === day && styles.dayButtonPressed]} onPress={() => handleDateButtonPress(day)} >
+                <Text title="day7" style={[styles.daytext, selectedButton === day && styles.currentday]} onPress={() => handleDateButtonPress(day)}>{`${day}`}</Text>
               </TouchableOpacity> 
             </View>
         
@@ -133,11 +270,27 @@ const Calendar = ( { navigation } ) => {
             </TouchableOpacity>
           </View>
 
+          {/* 안내방송 */}
+          <View style={styles.alramcontainer}>
+            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('cast')}}>
+              <Image source={require('../assets/image/radio.png')} style={styles.deviceImage} />
+              <Text style={styles.deviceText}>안내방송</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* 도어락 */}
           <View style={styles.alramcontainer}>
             <TouchableOpacity style={styles.unread} onPress={() => {openmodal('lock')}}>
               <Image source={require('../assets/image/lock.png')} style={styles.deviceImage} />
               <Text style={styles.deviceText}>도어락</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 세탁기건조기 */}
+          <View style={styles.alramcontainer}>
+            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('washer')}}>
+              <Image source={require('../assets/image/washing.png')} style={styles.deviceImage} />
+              <Text style={styles.deviceText}>세탁기 & 건조기</Text>
             </TouchableOpacity>
           </View>
 
@@ -148,12 +301,12 @@ const Calendar = ( { navigation } ) => {
               <Text style={styles.deviceText}>전자레인지</Text>
             </TouchableOpacity>
           </View>
-        
-          {/* 안내방송 */}
+
+          {/* 밥솥 */}
           <View style={styles.alramcontainer}>
-            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('radio')}}>
-              <Image source={require('../assets/image/radio.png')} style={styles.deviceImage} />
-              <Text style={styles.deviceText}>안내방송</Text>
+            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('cooker')}}>
+              <Image source={require('../assets/image/rice.png')} style={styles.deviceImage} />
+              <Text style={styles.deviceText}>밥솥</Text>
             </TouchableOpacity>
           </View>
 
@@ -165,33 +318,32 @@ const Calendar = ( { navigation } ) => {
             </TouchableOpacity>
           </View>
 
-          {/* 밥솥 */}
-          <View style={styles.alramcontainer}>
-            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('rice')}}>
-              <Image source={require('../assets/image/rice.png')} style={styles.deviceImage} />
-              <Text style={styles.deviceText}>밥솥</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* 세탁기건조기 */}
-          <View style={styles.alramcontainer}>
-            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('washing')}}>
-              <Image source={require('../assets/image/washing.png')} style={styles.deviceImage} />
-              <Text style={styles.deviceText}>세탁기 & 건조기</Text>
-            </TouchableOpacity>
-          </View>
-
           <Alrammodal
             visible={modalVisible}
             onClose={() => setModalVisible(false)}
-            allalarms={selectedDeviceAlarms}
+            allalarms={devicetypealarm}
             deviceImage={deviceImage}
             devicename={devicename}
-            time={time}
+            time={devicetypealarm?.resultTime}
+            device={devicetypealarm[0]?.deviceType}
+            modalContent={modalContent}
           />
+
+          <Sttmodal
+            visible={sttVisible}
+            onClose={() => setSttVisible(false)}
+            allalarms={devicetypealarm}
+            deviceImage={deviceImage}
+            devicename={devicename}
+            time={devicetypealarm?.resultTime}
+            device={devicetypealarm?.deviceType}
+            modalContent = {modalContent}
+            sttContent={devicetypealarm?.text}
+          />
+
         </View>
     
-        
+
     );
 };
 
@@ -230,14 +382,14 @@ const styles = StyleSheet.create({
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginLeft: 290,
+          marginLeft: 258,
           marginTop: 25,
-          width: 65
+          width: 70
         },
         icon: {
           width: 25,
           height: 25,
-          marginRight: 2,
+          marginLeft: 10,
         },
       alramcontainer: {
           justifyContent: 'space-between', // 요소 간 간격 조정
@@ -308,7 +460,27 @@ const styles = StyleSheet.create({
         marginTop: 9,
         fontFamily: 'cafe24ssurround',
         fontSize: 12,
-      }
+      },
+
+      dayButtonPressed: {
+          backgroundColor: '#4A3E8B', // 눌렸을 때 변경되는 스타일
+      },
+      unreadBadge: {
+              position: 'absolute',
+              top: -5,
+              right: -5,
+              width: 15,
+              height: 15,
+              backgroundColor: '#4A3E8B',
+              borderRadius: 10,
+              justifyContent: 'center',
+              alignItems: 'center',
+      },
+      unreadCountText: {
+              color: '#fff',
+              fontSize: 8,
+              fontWeight: 'bold',
+      },
 
 })
 

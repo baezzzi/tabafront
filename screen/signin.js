@@ -1,20 +1,62 @@
-import React from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import axios from 'axios';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { FCMContext } from './FCMContext';
 
 const Signin = ( { navigation }) => {
+
+  const [id, setId] = useState('');
+  const [passwd, setPasswd] = useState('');
+
+  // fcmToken 가져오는 거얌 얘는 푸시알람을 위한 토큰
+  const { fcmToken } = useContext(FCMContext);
+
+  const handleSignin = async () => {
+    try {
+      console.log('로그인 요청');
+      const response = await axios.post('http://54.180.219.236:8000/members/sign-in', {
+        username : id,
+        password : passwd,
+        fcmtoken : fcmToken
+      })
+
+      if (response.status === 200) {
+        // 얘는 인증을 위한 토큰
+        const token = response.data.token;
+        await AsyncStorage.setItem('X-User-Idx', token); // 토큰 저장ㅇ
+        console.log('X-User-Idx: ', token);
+        
+        Alert.alert('로그인 성공', response.data.message, [
+          {text : '확인', onPress: () => navigation.navigate('Base2') },
+        ]);
+      }
+    } catch (error) {
+      console.error('로그인 오류', error.response?.data || error.message);
+      Alert.alert('오류', error.response?.data || '서버와의 문제');
+    } finally {
+      navigation.navigate('Base2');
+    }
+  }
+
   return (
     <View style={styles.container}>
       {/* 아이디 입력 */}
       <TextInput
+        value={id}
+        onChangeText={setId}
         style={styles.input}
         placeholder="아이디 입력"
         placeholderTextColor="#878787"
-        secureTextEntry={false} 
         textAlign='center'
       />
 
       {/* 비밀번호 입력 */}
       <TextInput
+        value={passwd}
+        onChangeText={setPasswd}
         style={styles.input}
         placeholder="비밀번호 입력"
         placeholderTextColor="#878787"
@@ -23,7 +65,7 @@ const Signin = ( { navigation }) => {
       />
 
       {/* 로그인 버튼 */}
-      <TouchableOpacity style={styles.button} onPress={() => { navigation.navigate('Base2') }}>
+      <TouchableOpacity style={styles.button} onPress={handleSignin}>
         <Text style={styles.buttonText}>로그인</Text>
       </TouchableOpacity>
 

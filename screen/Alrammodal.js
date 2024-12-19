@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Modal, View, StyleSheet, ScrollView, TouchableOpacity, Text, Image } from 'react-native';
 import { AlarmContext } from './Alarmcontext';  // AlarmContext import
 
-const Alrammodal = ({ visible, onClose, allalarms, devicename, deviceImage, time }) => {
+const Alrammodal = ({ visible, onClose, allalarms, device, devicename, deviceImage, time, sttContent, modalContent}) => {
 
     return (
         <Modal
@@ -20,8 +20,8 @@ const Alrammodal = ({ visible, onClose, allalarms, devicename, deviceImage, time
                     <ScrollView style={styles.scrollContainer}>
                         {(allalarms || []).map((alarm, index) => (
                             <View key={index} style={styles.alarmContainer}>
-                                <Text style={styles.time}>{time}</Text>
-                                <Text style={styles.content}>{alarm.modalContent}</Text>
+                                <Text style={styles.time}>{alarm.resultTime}</Text>
+                                <Text style={styles.content}>{modalContent}</Text>
                             </View>
                         ))}
                     </ScrollView>

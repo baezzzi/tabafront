@@ -2,7 +2,7 @@ import React from 'react';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity} from 'react-native';
-import { createUserWithIdAndPassword, signInWithIdAndPassword } from "firebase/auth";
+import axios from 'axios';
 
 const Signup = ({ navigation }) => {
 
@@ -12,70 +12,95 @@ const Signup = ({ navigation }) => {
     const [newaccount, setNewaccount] = useState();
     const [pwerror, setPwerror] = useState('');
 
+    // 플레이스홀더 상태 추가
+    const [idPlaceholder, setIdPlaceholder] = useState('아이디 입력');
+    const [pwPlaceholder, setPwPlaceholder] = useState('비밀번호 입력');
+
 
     const handleSignup = async () => {
+        CheckId(id);
+        pwpolicy(passwd);
         try {
-            const response = await fetch("https://apiaddress/signup", {
-                method: POST,
-                headers: {
-                    'Content-Type' : 'appication/json',
-                },
-                body: JSON.stringify({
-                    id: id,
-                    passwd: passwd,
-                }),
+            //백엔드랑 dto 확인
+            const response = await axios.post("http://54.180.219.236:8000/members/sign-up", {
+                    username: id,
+                    password: passwd,
             });
 
-            const result = await response.json();
-            if (response.ok) {
-                Alert.alert("회원가입 성공", "계정 생성 성공~!", [
-                    { text : '확인', onPress: () => navigation.navigate('signiin') },
+            if (response.status === 200) {
+                Alert.alert('회원가입 성공~', response.data.message, [
+                    {text : '확인', onPress: () => navigation.navigate('signin') },
                 ]);
-            } else {
-                Alert.alert("회원가입 실패", result.message || '문제 발생');
             }
         } catch (error) {
-            console.error("회원가입 오류", error);
-            Alert.alert('오류', '서버와의 통신에 실패했습니다.');
+            console.error("회원가입 오류", error.response?.data || error.message);
+            Alert.alert('오류', error.response?.data || '서버와의 통신에 실패했습니다.');
         }
     }
     //비밀번호 확인
     const CheckPassword = (value) => {
         setCheck_pw(value);
         if (passwd === value) {
-            setPwerror();
+            setPwerror('');
             setNewaccount(true);
         } else {
             setPwerror("비밀번호가 일치하지 않습니다.");
             setNewaccount(false);
         }
     };
-    
+
+    const CheckId = (value) => {
+        // 아이디가 6글자 이상이고 영어+숫자 조합인지 확인하는 정규식
+        const idRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{4,}$/;
+
+        if (idRegex.test(value)) {
+            return true;
+        } else {
+            Alert.alert("아이디는 6글자 이상, 영어+숫자 조합이어야 합니다.");
+            return false;
+        }
+    };
+
+    const pwpolicy = (value) => {
+        const pwRegex= /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{9,}$/;
+
+        if(pwRegex.test(value)) {
+            return true;
+        } else {
+            Alert.alert("비밀번호는 9글자 이상 15글자 이하, 영어+숫자 조합이어야 합니다.");
+            return false;
+        }
+    }
+
     return (
         <View style={styles.container}>
             <TextInput
                 style={styles.input}
-                placeholder='아이디 입력'
+                placeholder={idPlaceholder}
                 placeholderTextColor="#878787"
                 secureTextEntry={false} 
                 textAlign='center'
                 value={id}
                 onChangeText={setId}
+                onFocus={() => setIdPlaceholder('영어+숫자 4글자 이상')}
+                onBlur={() => setIdPlaceholder('아이디 입력')}
             />
             <TextInput
                 style={styles.input}
-                placeholder='비밀번호 입력'
+                placeholder={pwPlaceholder}
                 placeholderTextColor="#878787"
-                secureTextEntry={false} 
+                secureTextEntry={true} 
                 textAlign='center'
                 value={passwd}
                 onChangeText={setPasswd}
+                onFocus={() => setPwPlaceholder('영어+숫자 9글자 이상')}
+                onBlur={() => setPwPlaceholder('비밀번호 입력')}
             />
             <TextInput
                 style={styles.input}
                 placeholder='비밀번호 확인'
                 placeholderTextColor="#878787"
-                secureTextEntry={false} 
+                secureTextEntry={true} 
                 textAlign='center'
                 value={check_pw}
                 onChangeText={CheckPassword}
@@ -83,7 +108,7 @@ const Signup = ({ navigation }) => {
             <TouchableOpacity 
                 style={[styles.button, newaccount ? styles.buttonEnable : styles.buttonDisabled]} 
                 disabled={!newaccount}
-                onPress={() => handleSignup}
+                onPress={handleSignup}
             >
                 <Text style={[styles.buttonText, !newaccount && styles.buttonTextDisabled]}>회원가입</Text>
             </TouchableOpacity>

@@ -140,8 +140,8 @@ const Calendar = ( { navigation } ) => {
         setModalContent('전자레인지가 완료 됐습니다!');
     } else if (devicename === 'lock') {
         setModalContent('건전지 수명이 얼마 안 남았습니다!');
-    } else if (devicename === 'refrigerator') {
-        setModalContent('냉장고 문이 열려있습니다');
+    } else if (devicename === 'firealarm') {
+        setModalContent('화재경보가 발생했습니다!');
     } else if (devicename === 'cooker') {
         setModalContent('취사가 완료 됐습니다!');
     } else if (devicename === 'washer'){
@@ -179,9 +179,9 @@ const Calendar = ( { navigation } ) => {
                 setDevicename('안내발송'); 
                 setDeviceImage(require('../assets/image/radio.png'));
                 break;
-        case 'refrigerator' : 
-                setDevicename('냉장고'); 
-                setDeviceImage(require('../assets/image/refrigerator.png'));
+        case 'firealarm' :
+                setDevicename('화재경보');
+                setDeviceImage(require('../assets/image/fire.png'));
                 break;
         case 'cooker' :
                 setDevicename('밥솥'); 
@@ -261,7 +261,15 @@ const Calendar = ( { navigation } ) => {
                 <Text title="day7" style={[styles.daytext, selectedButton === day && styles.currentday]} onPress={() => handleDateButtonPress(day)}>{`${day}`}</Text>
               </TouchableOpacity> 
             </View>
-        
+
+          {/* 화재경보*/}
+          <View style={styles.alramcontainer}>
+            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('firealarm')}}>
+              <Image source={require('../assets/image/fire.png')} style={styles.deviceImage} />
+              <Text style={styles.deviceText}>화재경보</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* 초인종 */}
           <View style={styles.alramcontainer}>
             <TouchableOpacity style={styles.unread} onPress={() => {openmodal('doorbell')}}>
@@ -310,13 +318,7 @@ const Calendar = ( { navigation } ) => {
             </TouchableOpacity>
           </View>
 
-          {/* 냉장고 */}
-          <View style={styles.alramcontainer}>
-            <TouchableOpacity style={styles.unread} onPress={() => {openmodal('refrigerator')}}>
-              <Image source={require('../assets/image/refrigerator.png')} style={styles.deviceImage} />
-              <Text style={styles.deviceText}>냉장고</Text>
-            </TouchableOpacity>
-          </View>
+
 
           <Alrammodal
             visible={modalVisible}

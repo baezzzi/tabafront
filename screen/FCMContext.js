@@ -42,7 +42,6 @@ export const FCMProvider = ({ children }) => {
     // background
     const back = messaging().setBackgroundMessageHandler(async (remoteMessage) => {
         console.log("[+] 배경 상태에서 메시지 수신:", remoteMessage);
-        await onMessageReceived(remoteMessage);
     });
 
     // quit
@@ -51,7 +50,6 @@ export const FCMProvider = ({ children }) => {
         .then(async (remoteMessage) => {
           if (remoteMessage) {
             console.log("[+] 앱이 종료된 상태에서 푸시 알림을 받았습니다:", remoteMessage);
-            await onMessageReceived(remoteMessage);
           }
     });
 
@@ -78,6 +76,10 @@ export const FCMProvider = ({ children }) => {
     console.log("[+] onMessageReceived 동작");
 
     // 진동 발생
+
+    if (remoteMessage.notification?.body === 'firealarm에 대한 알림이 도착했습니다!') {
+        firealarmVibration();
+    }
     triggerVibration();
 
     if (handleFCMmessage) {
@@ -85,9 +87,13 @@ export const FCMProvider = ({ children }) => {
     }
   }
 
+  const firealarmVibration = () => {
+    const vibrationPattern = [0, 1000, 100, 1000];
+    Vibration.vibrate(vibrationPattern, true); // 진ㄴ동 무한반복
+  }
   const triggerVibration = () => {
-      const vibrationPattern = [0, 500, 200, 500]; // 대기, 진동, 대기, 진동 (밀리초 단위)
-      Vibration.vibrate(vibrationPattern);
+      const vibrationPattern = [0, 500, 500, 500];// 대기, 진동, 대기, 진동 (밀리초 단위)
+//      Vibration.cancel(); // 현재 실행 중인 진동을 멈춤
     };
 
   const requestNotificationPermission = async () => {

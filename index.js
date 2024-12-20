@@ -73,7 +73,6 @@ const Index = () => {
 
         messaging().setBackgroundMessageHandler(async remoteMessage => {
         console.log('헤드리스 태스크에서 메시지 수신:', remoteMessage);
-        onMessageReceived(remoteMessage.data);
         });
     }, []);
 

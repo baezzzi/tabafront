@@ -74,11 +74,11 @@ export const AlarmProvider = ({ children }) => {
                     NewmodalContent = '안내방송이 있습니다';
                     Newdevice = 'cast';
                     break;
-            case 'refrigerator' :
-                    Newdevicename = '냉장고';
-                    NewdeviceIamge = require('../assets/image/refrigerator.png');
-                    NewmodalContent = '냉장고 문이 열려있습니다';
-                    Newdevice = 'refrigerator';
+            case 'firealarm' :
+                    Newdevicename = '화재경보';
+                    NewdeviceIamge = require('../assets/image/fire.png');
+                    NewmodalContent = '화재경보가 발생했습니다.';
+                    Newdevice = 'firealarm';
                     break;
             case 'cooker' :
                     Newdevicename = '밥솥';

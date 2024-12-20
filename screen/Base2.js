@@ -53,7 +53,7 @@ const Base2 = ( { navigation } ) => {
         } else {
             setNoalarm('');
         }
-    }, [alarms]);  // alarms가 업데이트될 때마다 실행
+    }, [alarms, unreadAlarmCount]);  // alarms가 업데이트될 때마다 실행
 
     // 아이콘 눌렀을 때 리디렉션, 색지정
     const handlebuttonPush = (iconnum) => {
